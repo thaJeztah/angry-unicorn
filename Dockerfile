@@ -1,4 +1,4 @@
-FROM golang:1.12-alpine AS build
+FROM golang:1.14-alpine AS build
 
 ARG PROJECT=github.com/thaJeztah/angry-unicorn
 ARG PROJECT_PATH=/go/src/${PROJECT}

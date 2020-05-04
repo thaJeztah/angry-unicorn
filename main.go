@@ -2,6 +2,7 @@ package main
 
 import (
 	"html/template"
+	"log"
 	"net/http"
 	"os"
 )
@@ -89,13 +90,16 @@ iVBORw0KGgoAAAANSUhEUgAAAZAAAAGZCAMAAACQbpc2AAADAFBMVEWEBz6FAD6FAD6GAD+MAEGOAEOK
 func main() {
 	t := template.Must(template.New("tmpl").Parse(htmlTmpl))
 	vars := map[string]string{
-		"TOP_MSG": os.Getenv("TOP_MSG"),
+		"TOP_MSG":    os.Getenv("TOP_MSG"),
 		"BOTTOM_MSG": os.Getenv("BOTTOM_MSG"),
 	}
-	http.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
-		t.Execute(w, vars)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		log.Printf(`%s - - "%s %s %s" "-" %d 0 %q`, r.RemoteAddr, r.Method, r.RequestURI, r.Proto, http.StatusOK, r.Header.Get("User-Agent"))
+		if err := t.Execute(w, vars); err != nil {
+			log.Println("ERROR:", err)
+		}
 	})
 
-	http.ListenAndServe(":" + os.Getenv("LISTEN_PORT"), nil)
+	log.Printf("Hold your horses, here come the Angry Unicornz at http://0.0.0.0:%s\n", os.Getenv("LISTEN_PORT"))
+	_ = http.ListenAndServe(":"+os.Getenv("LISTEN_PORT"), nil)
 }
-
