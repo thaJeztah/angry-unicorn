@@ -12,9 +12,12 @@ RUN go build \
 	  -o /build/angry-unicorn -a main.go
 
 FROM scratch
-ENV LISTEN_PORT=8080
-ENV TOP_MSG="This page is taking way too long to load."
-ENV BOTTOM_MSG="Sorry about that. Please try refreshing and contact us if the problem persists."
+ARG LISTEN_PORT=8080
+ARG TOP_MSG="This page is taking way too long to load."
+ARG BOTTOM_MSG="Sorry about that. Please try refreshing and contact us if the problem persists."
+ENV LISTEN_PORT=${LISTEN_PORT}
+ENV TOP_MSG=${TOP_MSG}
+ENV BOTTOM_MSG=${BOTTOM_MSG}
 CMD ["/angry-unicorn"]
 USER 1:1
 COPY --from=build /build/angry-unicorn /
