@@ -1,20 +1,31 @@
-FROM golang:1.14-alpine AS build
+# syntax=docker/dockerfile:1
 
-ARG PROJECT=github.com/thaJeztah/angry-unicorn
-ARG PROJECT_PATH=/go/src/${PROJECT}
-ENV CGO_ENABLED=0
-WORKDIR $PROJECT_PATH
-RUN mkdir -p /build
-COPY main.go .
+# GO_VERSION allows overriding the version of Go to use for building the binary.
+ARG GO_VERSION=1.22
 
-RUN go build \
-	  --ldflags "-extldflags -static" \
-	  -o /build/angry-unicorn -a main.go
+# build is the stage to cross-compile the binary.
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine AS build
+ARG TARGETOS
+ARG TARGETARCH
+COPY go.mod main.go .
+RUN <<-"EOT"
+	set -ex
+	mkdir -p /build
 
-FROM scratch
+	GOOS=${TARGETOS} GOARCH=${TARGETARCH} CGO_ENABLED=0 go build --ldflags "-extldflags -static" -o /build/angry-unicorn -a main.go
+EOT
+
+# final is the stage containing just the binary we built.
+FROM scratch AS final
+# LISTEN_PORT is the tcp port on which the service is listening.
 ARG LISTEN_PORT=8080
+
+# TOP_MSG is the top message printed on the Angry Unicorn page.
 ARG TOP_MSG="This page is taking way too long to load."
+
+# TOP_MSG is the bottom message printed on the Angry Unicorn page.
 ARG BOTTOM_MSG="Sorry about that. Please try refreshing and contact us if the problem persists."
+
 ENV LISTEN_PORT=${LISTEN_PORT}
 ENV TOP_MSG=${TOP_MSG}
 ENV BOTTOM_MSG=${BOTTOM_MSG}
